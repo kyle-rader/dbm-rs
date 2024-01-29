@@ -1,5 +1,6 @@
 use clap::Parser;
-use postgres::{tls::TlsConnect, Client, NoTls};
+use postgres::{Client, NoTls};
+mod env;
 
 #[derive(Debug, Parser)]
 struct Args {
