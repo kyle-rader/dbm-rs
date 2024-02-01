@@ -1,6 +1,6 @@
 use clap::Parser;
 use postgres::{Client, NoTls};
-mod env;
+mod env_file;
 
 #[derive(Debug, Parser)]
 struct Args {
@@ -17,10 +17,17 @@ fn main() -> anyhow::Result<()> {
     let Args { verbose, db_url } = Args::parse();
     println!("Verbose mode is {}", if verbose { "on" } else { "off" });
 
-    let Some(db_url) = db_url else {
-        eprintln!("error: The --db-url option or DATABASE_URL environment variable must be used");
+    let db_url = db_url.unwrap_or_else(|| {
+        let env_file = env_file::EnvFile::load();
+        if let Ok(env) = env_file {
+            if let Some(db_url) = env.database_url {
+                return db_url;
+            }
+        }
+
+        eprintln!("error: The --db-url or DATABASE_URL env var (from environment or .env file) must be set");
         std::process::exit(1);
-    };
+    });
 
     println!("Database URL is {}", db_url);
 
